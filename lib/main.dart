@@ -1,5 +1,10 @@
 // ignore_for_file: avoid_print
 
+// TODO LIST
+// - squish the textbox a little bit
+// - when nothing is found? then say that
+// - restore search text to the search box
+
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
@@ -17,7 +22,7 @@ void main() {
 }
 
 // since we don't have that many states, we can put them all in a single enum
-enum ApplicationMode { initial, waiting, search, lookingAtGIF }
+enum ApplicationMode { initial, erroring, waiting, search, lookingAtGIF }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -65,6 +70,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   ApplicationMode currentMode = ApplicationMode.initial;
 
+  String errorString = "";
+  String selectedGIF = "";
+
   void pullInSomeMoreResults() async {
     String encodedString = Uri.encodeComponent(searchString);
 
@@ -78,7 +86,13 @@ class _MyHomePageState extends State<MyHomePage> {
     if (requestResponse.statusCode != 200) {
       final statusCode = requestResponse.statusCode;
       print("GIPHY API response code: $statusCode");
-      // TODO: add an error state?
+
+      errorString = "Received API error code: $statusCode";
+
+      setState(() {
+        currentMode = ApplicationMode.erroring;
+      });
+
       return;
     }
 
@@ -139,9 +153,19 @@ class _MyHomePageState extends State<MyHomePage> {
     pullInSomeMoreResults();
   }
 
-  void lookAtGIF() {}
+  void lookAtGIF(String gif) {
+    selectedGIF = gif;
 
-  void goBackFromLookingAtGIF() {}
+    setState(() {
+      currentMode = ApplicationMode.lookingAtGIF;
+    });
+  }
+
+  void goBackFromLookingAtGIF() {
+    setState(() {
+      currentMode = ApplicationMode.search;
+    });
+  }
 
   Widget makeSearchBox() {
     return TextField(
@@ -167,6 +191,8 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  // I think that the creators of this GUI library did not have this in mind
+  // when they designed it, but this works
   List<Widget> makePageBasedOnApplicationModeAndStuff() {
     switch (currentMode) {
       case ApplicationMode.initial:
@@ -176,11 +202,18 @@ class _MyHomePageState extends State<MyHomePage> {
             'You have to search a GIF before!!! you can do anything',
           )
         ];
+      case ApplicationMode.erroring:
+        return [
+          makeSearchBox(),
+          Text(
+            errorString,
+          )
+        ];
       case ApplicationMode.waiting:
         return [
           makeSearchBox(),
           const Text(
-            'We are searching for your GIFs, please wait...',
+            '⌛ We are searching for your GIFs, please wait... ⌛',
           )
         ];
       case ApplicationMode.search:
@@ -190,6 +223,8 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 print("Pressed on the button!");
                 print(result.fullURL);
+
+                lookAtGIF(result.fullURL);
               });
           //return Text(result.previewURL);
         }).toList();
@@ -199,16 +234,13 @@ class _MyHomePageState extends State<MyHomePage> {
           const Text(
             "Okay, here's your GIFs:",
           ),
-          //] +
-          //GIFs +
-          //[
           GridView.count(
               physics: NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               crossAxisCount: 3,
               children: GIFs),
           TextButton(
-              child: Text("Load some more GIFs"),
+              child: Text("Load some more GIFs 🚀"),
               onPressed: () {
                 pullInSomeMoreResults();
 
@@ -218,10 +250,20 @@ class _MyHomePageState extends State<MyHomePage> {
               })
         ];
       case ApplicationMode.lookingAtGIF:
-        break;
+        return [
+          const Text(
+            "🧐 Check this out:",
+          ),
+          Image.network(selectedGIF),
+          TextButton(
+              child: const Text(
+                "Okey, 😇 I have seen enough..",
+              ),
+              onPressed: () {
+                goBackFromLookingAtGIF();
+              })
+        ];
     }
-
-    return [const Text("This should not!")];
   }
 
   @override
