@@ -1,10 +1,5 @@
 // ignore_for_file: avoid_print
 
-// TODO LIST
-// - squish the textbox a little bit
-// - when nothing is found? then say that
-// - restore search text to the search box
-
 import 'package:flutter/material.dart';
 
 import 'package:http/http.dart' as http;
@@ -27,7 +22,6 @@ enum ApplicationMode { initial, erroring, waiting, search, lookingAtGIF }
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -268,6 +262,7 @@ class _MyHomePageState extends State<MyHomePage> {
           const Text(
             "🧐 Check this out:",
           ),
+          SizedBox(height: 8),
           Image.network(selectedGIF),
           TextButton(
               child: const Text(
