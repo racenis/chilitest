@@ -15,7 +15,7 @@ import 'dart:convert';
 const String GIPHY_API_KEY = "jGyBAGdeBLXU4WHoAkYF0HxqEFQx2CMa";
 
 // this is how many GIFs 🖼️ will be requested from the API at one time
-const int SEARCH_OFFSET = 10;
+const int SEARCH_OFFSET = 9;
 
 void main() {
   runApp(const MyApp());
@@ -208,10 +208,15 @@ class _MyHomePageState extends State<MyHomePage> {
           });
     }).toList();
 
+    // we could use a more sophisticated column determination algorithm, but I
+    // think that this looks good enough
+    final vertical = MediaQuery.of(context).orientation == Orientation.portrait;
+    final columns = vertical ? 3 : 9;
+
     return GridView.count(
         physics: NeverScrollableScrollPhysics(),
         shrinkWrap: true,
-        crossAxisCount: 3,
+        crossAxisCount: columns,
         children: GIFs);
   }
 
@@ -238,7 +243,8 @@ class _MyHomePageState extends State<MyHomePage> {
           makeSearchBox(),
           const Text(
             '⌛ We are searching for your GIFs, please wait... ⌛',
-          )
+          ),
+          makeGIFList()
         ];
       case ApplicationMode.search:
         return [
@@ -283,10 +289,11 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Center(
         child: SingleChildScrollView(
+            padding: EdgeInsets.all(8),
             child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: makePageBasedOnApplicationModeAndStuff(),
-        )),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: makePageBasedOnApplicationModeAndStuff(),
+            )),
       ),
     );
   }
