@@ -167,15 +167,16 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  var searchBoxController = TextEditingController();
+
   Widget makeSearchBox() {
     return TextField(
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         hintText: 'Enter a search term',
       ),
+      controller: searchBoxController,
       onChanged: (text) {
-        print('First text field: $text (${text.characters.length})');
-
         setState(() {
           currentMode = ApplicationMode.waiting;
         });
@@ -189,6 +190,29 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       },
     );
+  }
+
+  Widget makeGIFList() {
+    if (currentMode == ApplicationMode.search && searchResults.isEmpty) {
+      return Text("Wow! 😳 There's nothing here!");
+    }
+
+    final GIFs = searchResults.map((SearchResult result) {
+      return IconButton(
+          icon: Image.network(result.previewURL, width: 100, height: 100),
+          onPressed: () {
+            print("Pressed on the button!");
+            print(result.fullURL);
+
+            lookAtGIF(result.fullURL);
+          });
+    }).toList();
+
+    return GridView.count(
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        children: GIFs);
   }
 
   // I think that the creators of this GUI library did not have this in mind
@@ -217,28 +241,12 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ];
       case ApplicationMode.search:
-        final GIFs = searchResults.map((SearchResult result) {
-          return IconButton(
-              icon: Image.network(result.previewURL, width: 100, height: 100),
-              onPressed: () {
-                print("Pressed on the button!");
-                print(result.fullURL);
-
-                lookAtGIF(result.fullURL);
-              });
-          //return Text(result.previewURL);
-        }).toList();
-
         return [
           makeSearchBox(),
           const Text(
             "Okay, here's your GIFs:",
           ),
-          GridView.count(
-              physics: NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              crossAxisCount: 3,
-              children: GIFs),
+          makeGIFList(),
           TextButton(
               child: Text("Load some more GIFs 🚀"),
               onPressed: () {
