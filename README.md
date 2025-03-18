@@ -1,4 +1,6 @@
-# chilitest
+# Take-home assignment for Chili Labs
+
+I was ghosted, btw.
 
 ### Flutter version
 
